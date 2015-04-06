@@ -147,6 +147,7 @@ void computerTurn(float playerScore)
 {
 	float score, computerScore = 0.0;
 	string ans;
+	str = "\0";
 	
 	cout << "\nThe computer's turn." << endl;
 	
