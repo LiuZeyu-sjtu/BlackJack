@@ -1,0 +1,228 @@
+//BlackJack.
+
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+#include <string>
+using namespace std;
+
+
+//Define an exception class.
+class InputError {
+	public:
+		InputError(): message("Please input the correct content.") {	}
+		const char *what() const {return message;}
+	private:
+		const char *message;
+};
+
+
+float allCards[4][13];
+int suit, point;
+bool flag = 1;
+string str;		//str is used to store the name of the cards.
+
+
+//Shuffle to begin a new game.
+void shuffle()
+{
+	for (int i = 0; i <= 3; ++i) {
+		for (int j = 0; j <= 9; ++j) allCards[i][j] = j + 1.0;
+		for (int k = 10; k <= 12; ++k) allCards[i][k] = 0.5;
+	}
+}
+
+
+//A simulation of deal(distribute cards to player or computer).
+float deal()
+{
+	float score;		//Score is a temporary variable used to store the value added to all scores.
+		
+	do {
+		srand(time(NULL));
+		suit = rand() % 4;
+		point = rand() % 13;
+	} while (allCards[suit][point] == 0.0);
+
+	score = allCards[suit][point];
+	allCards[suit][point] = 0.0;		//Make sure there won't be two same cards.
+	
+	return score;
+}
+
+
+//To print the card represented by the random number.
+void showCard(int suit, int point)
+{
+	switch (suit) {
+		case 0: str += " Spade "; break;
+		case 1: str += " Heart "; break;
+		case 2: str += " Club "; break;
+		default: str += " Diamond ";
+	}
+	
+	switch (static_cast<int>(point)) {
+		case 9: str += "10"; break;
+		case 10: str += "J"; break;
+		case 11: str += "Q"; break;
+		case 12: str += "K"; break;
+		case 0: str += "A"; break;
+		default: str += point + 1 + '0'; 
+	}	
+}
+
+
+//The player's turn.Return the score that player gets in the turn.
+float playerTurn()
+{
+	float score, playerScore = 0.0;
+	string ans; 
+	
+	cout << "Your turn." << endl;
+	
+	cout << "\nYou get two cards: ";
+	
+	playerScore += deal();
+	showCard(suit, point);
+	
+	playerScore += deal();
+	showCard(suit, point);		//First two cards.
+	cout << str <<endl;
+	
+	do {
+		
+		int judger = 0;		//Judger is used temporarily just to make the program run correctly.
+		cout << "\nDo you want one more card?(Y/N)";
+		while (cin >> ans) {
+			try {
+				if (ans != "N" && ans != "n" && ans != "Y" && ans != "y") throw InputError();
+				else {
+					if (ans == "N" || ans == "n") judger = 1; break;
+				}
+			}
+			catch (InputError ex) {
+				cout << ex.what() << endl;
+				cin.clear();
+			}
+			cout << "\nDo you want one more card?(Y/N)";
+		}			//Dealing with input excptions. 
+		
+		if (judger == 1) break;
+		cout << "\nYou get a new card: ";
+		playerScore += deal();
+		showCard(suit, point);
+		cout << str << endl;
+
+	} while (playerScore <= 21.0);
+	
+	if (playerScore > 21.0) {
+		cout << "\nYou lose!" << endl;
+		cout << "\nDo you want to continue?(Y/N)";
+		while (cin >> ans) {
+			try {
+				if (ans != "N" && ans != "n" && ans != "Y" && ans != "y") throw InputError();
+				else {
+					if (ans == "N" || ans == "n") {
+						flag = 0;
+						break;
+					}
+					str = "\0";
+					break;
+				}
+			}
+			catch (InputError ex) {
+				cout << ex.what() << endl;
+				cin.clear();
+				cout << "\nDo you want to continue?(Y/N)";
+			}
+		}		//Dealing with input exceptions.
+	}
+	
+	return playerScore;
+}
+
+
+//The computer's turn.
+void computerTurn(float playerScore)
+{
+	float score, computerScore = 0.0;
+	string ans;
+	
+	cout << "\nThe computer's turn." << endl;
+	
+	cout << "\nThe computer gets two cards: ";
+	
+	computerScore += deal();
+	showCard(suit, point);
+	
+	computerScore += deal();
+	showCard(suit, point);
+	cout << str << endl;		//First two cards.
+	
+	while (computerScore <= playerScore && computerScore <= 21.0) {
+		cout << "\nThe computer gets a new card: ";
+		computerScore += deal();
+		showCard(suit, point);
+		cout << str << endl;
+	}
+	
+	if (computerScore > 21) {
+		cout << "\nYou win!" << endl;
+		cout << "\nDo you want to continue?(Y/N)";
+		while (cin >> ans) {
+			try {
+				if (ans != "N" && ans != "n" && ans != "Y" && ans != "y") throw InputError();
+				else {
+					if (ans == "N" || ans == "n") {
+						flag = 0;
+						break;
+					}
+					str = "\0";
+					break;
+				}
+			}
+			catch (InputError ex) {
+				cout << ex.what() << endl;
+				cin.clear();
+				cout << "\nDo you want to continue?(Y/N)";
+			}
+		}		//Dealing with input exceptions.
+	}
+	
+	if (computerScore > playerScore && computerScore <= 21) {
+		cout << "\nYou lose!" << endl;
+		cout << endl;
+		cout << "\nDo you want to continue?(Y/N)";
+		while (cin >> ans) {
+			try {
+				if (ans != "N" && ans != "n" && ans != "Y" && ans != "y") throw InputError();
+				else {
+					if (ans == "N" || ans == "n") {
+						flag = 0;
+						break;
+					}
+					str = "\0";
+					break;
+				}
+			}
+			catch (InputError ex) {
+				cout << ex.what() << endl;
+				cin.clear();
+				cout << "\nDo you want to continue?(Y/N)";
+			}
+		}		//Dealing with input exceptions.
+	}
+}
+
+
+int main()
+{
+	float playerScore;
+	do {	
+		shuffle();
+		playerScore = playerTurn();
+		if (flag == 1 && playerScore <= 21) computerTurn(playerScore);
+	} while (flag == 1);
+	
+	return 0;
+}
